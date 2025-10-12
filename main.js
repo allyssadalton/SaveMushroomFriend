@@ -35,11 +35,11 @@ scene.add(ground);
 
 // Basic "Mushroom Man" (placeholder)
 const mushroomBody = new THREE.Mesh(
-    //top radius, bottom radius, height, radial segments
-  new THREE.CylinderGeometry(0.3, 0.5, 1, 16), 
+  //top radius, bottom radius, height, radial segments
+  new THREE.CylinderGeometry(0.3, 0.5, 1, 16),
   new THREE.MeshStandardMaterial({ color: 0xffc58f })
 );
-mushroomBody.position.y = .5;
+mushroomBody.position.y = 0.5;
 scene.add(mushroomBody);
 
 const mushroomCap = new THREE.Mesh(
@@ -48,6 +48,18 @@ const mushroomCap = new THREE.Mesh(
 );
 mushroomCap.position.y = 1;
 scene.add(mushroomCap);
+
+// Simple keyboard controls for mushroom movement (arrows and WASD)
+window.addEventListener('keydown', (e) => {
+  const step = 0.2;
+  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') mushroomBody.position.x -= step;
+  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') mushroomBody.position.x += step;
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') mushroomBody.position.z -= step;
+  if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') mushroomBody.position.z += step;
+  // Move the cap with the body
+  mushroomCap.position.x = mushroomBody.position.x;
+  mushroomCap.position.z = mushroomBody.position.z;
+});
 
 // Handle resizing
 window.addEventListener('resize', () => {

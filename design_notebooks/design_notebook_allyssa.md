@@ -109,19 +109,19 @@ Done
 
 - **Iteration 6:**  
   - **Goal/Task/Rationale:**  
-  
+  Let the mushroom moves using WASD or arrow keys.
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      I added a function to allow the character to move on key presses
       
 - **Response/Result:**
-  
+  Character moves
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+  Done, but the character is able to move through objects
 
 - **Iteration 7:**  
   - **Goal/Task/Rationale:**  
