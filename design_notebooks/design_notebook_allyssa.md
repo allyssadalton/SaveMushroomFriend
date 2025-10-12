@@ -22,20 +22,19 @@
 
 - **Iteration 1:**  
   - **Goal/Task/Rationale:**  
-  
+    Set up index.html to host the game. 
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      I created a very simple and basic index.html file to view the game on a web browser. 
       
 - **Response/Result:**
-  
+    index.html file created and filled out
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
-
+  Done for now, but reevaluate after completing a bit of the world.  
 
 - **Iteration 2:**  
   - **Goal/Task/Rationale:**  
