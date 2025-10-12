@@ -188,8 +188,10 @@ The sky looks like it's evening time
 
       
 - **Response/Result:**
-  Night time from 9pm-5am then daytime from 5am till game ends
+  Night time from 9pm-5am then daytime from 5am till game ends.
+  Clock runs from 9pm until 6pm (when game ends)
   
+
 
 
   

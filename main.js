@@ -246,5 +246,9 @@ function animate() {
   updateSkyAndCelestials();
 
   renderer.render(scene, camera);
+  camera.position.x = mushroomGroup.position.x;
+  camera.position.y = mushroomGroup.position.y + 3; // height above
+  camera.position.z = mushroomGroup.position.z + 7; // distance behind
+  camera.lookAt(mushroomGroup.position);
 }
 animate();
