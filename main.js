@@ -1,7 +1,26 @@
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // Light Blue 
+// Midnight sky color (deep blue)
+scene.background = new THREE.Color(0x25254a); // Midnight Blue
+// Add stars to the sky
+function addStars(numStars = 900) {
+  for (let i = 0; i < numStars; i++) {
+    const star = new THREE.Mesh(
+      new THREE.SphereGeometry(0.1, 8, 8), // radius, width segments, height segments
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    // Random position in the sky
+    const radius = 30 + Math.random() * 20;
+    const theta = Math.random() * 2 * Math.PI;
+    const phi = Math.random() * Math.PI / 2; // Only upper hemisphere
+    star.position.x = radius * Math.cos(theta) * Math.sin(phi);
+    star.position.y = radius * Math.cos(phi) + 10; // keep above ground
+    star.position.z = radius * Math.sin(theta) * Math.sin(phi);
+    scene.add(star);
+  }
+}
+addStars(120);
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(

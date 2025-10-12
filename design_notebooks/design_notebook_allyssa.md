@@ -59,7 +59,7 @@
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      Told CoPilot "#file:main.js (index):1 Uncaught TypeError: Failed to resolve module specifier "three". Relative references must start with either "/", "./", or "../"."
+      Copilot Prompt: "#file:main.js (index):1 Uncaught TypeError: Failed to resolve module specifier "three". Relative references must start with either "/", "./", or "../"."
       
       Response:
       To fix this quickly for browser use, you should:
@@ -125,20 +125,47 @@ Done
 
 - **Iteration 7:**  
   - **Goal/Task/Rationale:**  
-  
+  Make it look like evening time and add stars.
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
-      
+      Copilot Prompt: Can you make the sky look like it's evening time and add starts?
+    
+      Response: 
+        Change the sky color:
+        Set the scene background to a darker, evening-like color (such as deep blue or purple) using:
+        scene.background = new THREE.Color(0x2c2255); // or another evening color
+      Add stars:
+        Create a function to add small white spheres (stars) at random positions in the sky:
+          function addStars(numStars) {
+  for (let i = 0; i < numStars; i++) {
+    const star = new THREE.Mesh(
+      new THREE.SphereGeometry(0.05, 8, 8),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
+    );
+    // Random position in the upper sky
+    const radius = 30 + Math.random() * 20;
+    const theta = Math.random() * 2 * Math.PI;
+    const phi = Math.random() * Math.PI / 2;
+    star.position.x = radius * Math.cos(theta) * Math.sin(phi);
+    star.position.y = radius * Math.cos(phi) + 10;
+    star.position.z = radius * Math.sin(theta) * Math.sin(phi);
+    scene.add(star);
+  }
+}
+addStars(100); // or however many stars you want
+
+
+
+
 - **Response/Result:**
-  
+The sky looks like it's evening time  
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
 
-
+  Need to fix the lightening
 
 - **Iteration 8:**  
   - **Goal/Task/Rationale:**  
@@ -149,11 +176,12 @@ Done
       
       
 - **Response/Result:**
-  
+
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
 
 - **Iteration 9:**  
   - **Goal/Task/Rationale:**  
