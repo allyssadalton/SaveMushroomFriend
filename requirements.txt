@@ -1,2 +1,3 @@
 $ npm install requirements.txt
 THREE
+cannon-es
