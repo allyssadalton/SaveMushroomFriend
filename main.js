@@ -1,11 +1,93 @@
 import * as THREE from 'https://unpkg.com/three@0.155.0/build/three.module.js';
 import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
+// Adds game clock
+let hour = 21; 
+let minute = 0;
+let gameRunning = true;
+
+setInterval(() => {
+  if (!gameRunning) return;
+  minute++;
+  if (minute >= 60) {
+    minute = 0;
+    hour++;
+    if (hour >= 24) hour = 0;
+  }
+  // Stop at 6pm (18:00)
+  if (hour === 18 && minute === 0) {
+    gameRunning = false;
+    // Show end game message
+    document.getElementById('clock').innerText = 'Game Over!';
+  }
+  updateClockDisplay();
+  updateSkyAndCelestials();
+}, 1000);
+
+function updateClockDisplay() {
+  const pad = n => n.toString().padStart(2, '0');
+  document.getElementById('clock').innerText = `${pad(hour)}:${pad(minute)}`;
+}
+
+
+
+
 // Scene setup
 const scene = new THREE.Scene();
 const world = new CANNON.World();
 world.gravity.set(0, -9.82, 0); // Gravity!
 scene.background = new THREE.Color(0x25254a); // Midnight Blue
+
+
+// Sun (yellow sphere)
+const sun = new THREE.Mesh(
+  new THREE.SphereGeometry(1, 32, 32),
+  new THREE.MeshBasicMaterial({ color: 0xffee88 })
+);
+sun.position.set(0, 20, -30); // initial position, far in the sky
+scene.add(sun);
+
+// Moon (white sphere)
+const moon = new THREE.Mesh(
+  new THREE.SphereGeometry(0.8, 32, 32),
+  new THREE.MeshBasicMaterial({ color: 0xf0f8ff })
+);
+moon.position.set(0, 20, -30); // initial position, far in the sky
+scene.add(moon);
+
+// Sunlight (for day)
+const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+sunLight.position.set(5, 10, 7);
+scene.add(sunLight);
+
+// --- Sky and Celestial Update Function ---
+function updateSkyAndCelestials() {
+  // Night: 9pm (21) to 5am (5)
+  if (hour >= 21 || hour < 5) {
+    scene.background.set(0x25254a); // night sky
+    sun.visible = false;
+    moon.visible = true;
+    // Move moon in an arc across the sky
+    const t = ((hour >= 21 ? hour - 21 : hour + 3) * 60 + minute) / (8 * 60); // 8 hours: 9pm-5am
+    const angle = Math.PI * (1 - t); // from left (moonrise) to right (moonset)
+    moon.position.set(20 * Math.cos(angle), 15 + 10 * Math.sin(angle), -30);
+  } else if (hour >= 5 && hour < 18) {
+    // Day: 5am to 6pm
+    scene.background.set(0x87ceeb); // day sky
+    sun.visible = true;
+    moon.visible = false;
+    // Move sun in an arc across the sky
+    const t = ((hour - 5) * 60 + minute) / (13 * 60); // 13 hours: 5am-6pm
+    const angle = Math.PI * t; // from left (sunrise) to right (sunset)
+    sun.position.set(20 * Math.cos(angle), 15 + 10 * Math.sin(angle), -30);
+  } else {
+    // Evening: 6pm-9pm (transition)
+    scene.background.set(0x2c2255); // evening sky
+    sun.visible = false;
+    moon.visible = false;
+  }
+}
+
 
 // Stars
 function addStars(numStars = 900) {
@@ -26,6 +108,9 @@ function addStars(numStars = 900) {
   }
 }
 addStars(120);
+updateSkyAndCelestials();
+
+
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
@@ -42,9 +127,6 @@ document.body.appendChild(renderer.domElement);
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 scene.add(ambientLight);
 
-const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-sunLight.position.set(5, 10, 7);
-scene.add(sunLight);
 
 // Ground
 const groundTexture = new THREE.TextureLoader().load('assets/grass.jpg');
@@ -148,6 +230,8 @@ function addTree(x, z) {
 addTree(5, 3);
 addTree(5, 5);
 
+
+// --- Example: Call updateSkyAndCelestials in your animation loop for smooth updates ---
 const timeStep = 1 / 60;
 
 function animate() {
@@ -156,10 +240,10 @@ function animate() {
   handlePlayerMovement();
   world.step(timeStep); // advance physics
 
-
   // Sync 3D model with physics
   mushroomGroup.position.copy(mushroomBodyPhysics.position);
-  // If you want to offset the cap, you can adjust the children positions as before
+
+  updateSkyAndCelestials();
 
   renderer.render(scene, camera);
 }

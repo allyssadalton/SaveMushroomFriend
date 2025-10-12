@@ -169,19 +169,33 @@ The sky looks like it's evening time
 
 - **Iteration 8:**  
   - **Goal/Task/Rationale:**  
-  
+    Add a game clock and base the game end and sky on it.
       
   - **What do you do?**   
-    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}    
+      Copilot Prompt:
+      How would I go about making the sky based on a clock? I want this clock to display and start at 9pm. From 9pm-5am I want the moon to come out then go back down. From 5am-9pm I want the sun to come out then go back down. At 6pm, I want the clock to stop and end the game. I also want 1 minute in the clock to be 1 real life second, 1 hour be 1 real life minute.
       
+      Response:
+      Here’s how you can achieve this:
+      Create a clock variable that tracks hours and minutes, starting at 9:00 PM.
+      Display the clock on the screen using a simple HTML overlay.
+      Advance the clock: Every real second, increment the minute; every 60 seconds, increment the hour.
+      Change the sky and show sun/moon based on the time:
+      9pm–5am: Show the moon, hide the sun, use a night sky color.
+      5am–9pm: Show the sun, hide the moon, use a day sky color.
+      At 6pm, stop the clock and end the game (e.g., show a message and stop updates).
+
       
 - **Response/Result:**
+  Night time from 9pm-5am then daytime from 5am till game ends
+  
 
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+  Done
 
 - **Iteration 9:**  
   - **Goal/Task/Rationale:**  
