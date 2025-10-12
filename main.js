@@ -1,15 +1,20 @@
+import * as THREE from 'https://unpkg.com/three@0.155.0/build/three.module.js';
+import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
 
 // Scene setup
 const scene = new THREE.Scene();
-// Midnight sky color (deep blue)
+const world = new CANNON.World();
+world.gravity.set(0, -9.82, 0); // Gravity!
 scene.background = new THREE.Color(0x25254a); // Midnight Blue
-// Add stars to the sky
+
+// Stars
 function addStars(numStars = 900) {
   for (let i = 0; i < numStars; i++) {
     const star = new THREE.Mesh(
       new THREE.SphereGeometry(0.1, 8, 8), // radius, width segments, height segments
       new THREE.MeshBasicMaterial({ color: 0xffffff })
     );
+
     // Random position in the sky
     const radius = 30 + Math.random() * 20;
     const theta = Math.random() * 2 * Math.PI;
@@ -47,38 +52,68 @@ groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(10, 10);
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshStandardMaterial({ color: 0x228B22 }) //Grass green
+  new THREE.MeshStandardMaterial({ color: 0x228B22 })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
 
+// Ground (Cannon.js physics)
+const groundBody = new CANNON.Body({
+  mass: 0, // static body
+  shape: new CANNON.Plane(),
+});
+groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+world.addBody(groundBody);
+
 // Basic "Mushroom Man" (placeholder)
-const mushroomBody = new THREE.Mesh(
-  //top radius, bottom radius, height, radial segments
+const mushroomGroup = new THREE.Group();
+
+// Stem (Three.js)
+const mushroomStem = new THREE.Mesh(
   new THREE.CylinderGeometry(0.3, 0.5, 1, 16),
   new THREE.MeshStandardMaterial({ color: 0xffc58f })
 );
-mushroomBody.position.y = 0.5;
-scene.add(mushroomBody);
+mushroomStem.position.y = 0;
+mushroomGroup.add(mushroomStem);
 
+// Cap (Three.js)
 const mushroomCap = new THREE.Mesh(
   new THREE.SphereGeometry(1, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2),
   new THREE.MeshStandardMaterial({ color: 0xd22b2b })
 );
-mushroomCap.position.y = 1;
-scene.add(mushroomCap);
+mushroomCap.position.y = 0.5;
+mushroomGroup.add(mushroomCap);
+
+scene.add(mushroomGroup);
+
+// Mushroom physics (Cannon.js)
+const mushroomShape = new CANNON.Sphere(0.5);
+const mushroomBodyPhysics = new CANNON.Body({
+  mass: 1,
+  shape: mushroomShape,
+  position: new CANNON.Vec3(0, 1, 0),
+});
+mushroomBodyPhysics.linearDamping = 0.9;
+world.addBody(mushroomBodyPhysics);
+
 
 // Simple keyboard controls for mushroom movement (arrows and WASD)
-window.addEventListener('keydown', (e) => {
-  const step = 0.2;
-  if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') mushroomBody.position.x -= step;
-  if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') mushroomBody.position.x += step;
-  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') mushroomBody.position.z -= step;
-  if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') mushroomBody.position.z += step;
-  // Move the cap with the body
-  mushroomCap.position.x = mushroomBody.position.x;
-  mushroomCap.position.z = mushroomBody.position.z;
-});
+const keys = {};
+window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
+window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
+
+function handlePlayerMovement() {
+  const force = 10;
+  const vel = mushroomBodyPhysics.velocity;
+
+  if (keys['w'] || keys['arrowup']) vel.z = -force;
+  else if (keys['s'] || keys['arrowdown']) vel.z = force;
+  else vel.z = 0;
+
+  if (keys['a'] || keys['arrowleft']) vel.x = -force;
+  else if (keys['d'] || keys['arrowright']) vel.x = force;
+  else vel.x = 0;
+}
 
 // Handle resizing
 window.addEventListener('resize', () => {
@@ -90,25 +125,42 @@ window.addEventListener('resize', () => {
 // TREESSSS
 function addTree(x, z) {
   const trunk = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.5, .7, 10, 8), // .3, .5 to make the trunk wider then taper up 
+    new THREE.CylinderGeometry(0.5, 0.7, 10, 8),
     new THREE.MeshStandardMaterial({ color: 0x8b4513 })
   );
-  trunk.position.set(x, 1, z);
+  trunk.position.set(x, 5, z);
 
   const leaves = new THREE.Mesh(
-    new THREE.SphereGeometry(2, 16, 16), 
+    new THREE.SphereGeometry(2, 16, 16),
     new THREE.MeshStandardMaterial({ color: 0x228b22 })
   );
-  leaves.position.set(x, 6, z);
+  leaves.position.set(x, 10, z);
 
   scene.add(trunk, leaves);
+
+  // Add physics collider for trunk
+  const treeShape = new CANNON.Cylinder(0.5, 0.7, 10, 8);
+  const treeBody = new CANNON.Body({ mass: 0 });
+  treeBody.addShape(treeShape);
+  treeBody.position.set(x, 5, z);
+  world.addBody(treeBody);
 }
 addTree(5, 3);
 addTree(5, 5);
 
-// Animation loop
+const timeStep = 1 / 60;
+
 function animate() {
   requestAnimationFrame(animate);
+
+  handlePlayerMovement();
+  world.step(timeStep); // advance physics
+
+
+  // Sync 3D model with physics
+  mushroomGroup.position.copy(mushroomBodyPhysics.position);
+  // If you want to offset the cap, you can adjust the children positions as before
+
   renderer.render(scene, camera);
 }
 animate();
