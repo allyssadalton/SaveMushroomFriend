@@ -76,35 +76,35 @@
 
 - **Iteration 4:**  
   - **Goal/Task/Rationale:**  
-  
+  Create trees!!!
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      I created a function to add a tree on the ground then called it add one at location 5, 1, 5.
       
 - **Response/Result:**
-  
+    Tree was added, but the mushroom is the same size.
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+  Mushroom man size needs fixed.
 
 - **Iteration 5:**  
   - **Goal/Task/Rationale:**  
-  
+    Fix the size ratio for mushroom and tree
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      I decided to make the mushroom shorter and skinnier, but I still didn't like how small the trees looked. I decided to make them taller, wider, and the leaves larger. 
       
 - **Response/Result:**
-  
+    The size of mushroom to tree is good
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+Done
 
 
 - **Iteration 6:**  
