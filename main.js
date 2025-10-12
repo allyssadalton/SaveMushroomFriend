@@ -1,7 +1,7 @@
 
 // Scene setup
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x87ceeb); // light sky blue
+scene.background = new THREE.Color(0x87ceeb); // Light Blue 
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
@@ -26,10 +26,9 @@ scene.add(sunLight);
 const groundTexture = new THREE.TextureLoader().load('assets/grass.jpg');
 groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(10, 10);
-
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(50, 50),
-  new THREE.MeshStandardMaterial({ map: groundTexture })
+  new THREE.MeshStandardMaterial({ color: 0x228B22 }) //Grass green
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
