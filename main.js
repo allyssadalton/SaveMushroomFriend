@@ -4,7 +4,29 @@ import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cann
 // Adds game clock
 let hour = 21; 
 let minute = 0;
-let gameRunning = true;
+var gameRunning = false;
+
+let gameStarted = false;
+let gamePaused = false;
+const startScreen = document.getElementById("startScreen");
+const pauseOverlay = document.getElementById("pauseOverlay");
+
+// Start game on any key press
+window.addEventListener("keydown", (e) => {
+  if (!gameStarted) {
+    gameStarted = true;
+    startScreen.style.display = "none";
+    gameRunning = true;
+    return;
+  }
+
+  // Toggle pause on ESC key
+  if (e.key === "Escape") {
+    gamePaused = !gamePaused;
+    pauseOverlay.style.display = gamePaused ? "flex" : "none";
+    gameRunning = !gamePaused;
+  }
+});
 
 setInterval(() => {
   if (!gameRunning) return;
@@ -91,23 +113,37 @@ function updateSkyAndCelestials() {
 
 // Stars
 function addStars(numStars = 900) {
+  const skyRadius = 400;   // How far away the stars are
+  const skyThickness = 50; // Variation so they’re not on a perfect sphere
+  const verticalBias = 0.2; // Bias stars upward (0–1)
+
   for (let i = 0; i < numStars; i++) {
     const star = new THREE.Mesh(
-      new THREE.SphereGeometry(0.1, 8, 8), // radius, width segments, height segments
+      new THREE.SphereGeometry(0.2, 8, 8),
       new THREE.MeshBasicMaterial({ color: 0xffffff })
     );
 
-    // Random position in the sky
-    const radius = 30 + Math.random() * 20;
-    const theta = Math.random() * 2 * Math.PI;
-    const phi = Math.random() * Math.PI / 2; // Only upper hemisphere
-    star.position.x = radius * Math.cos(theta) * Math.sin(phi);
-    star.position.y = radius * Math.cos(phi) + 10; // keep above ground
-    star.position.z = radius * Math.sin(theta) * Math.sin(phi);
+    // Spherical coordinates
+    const theta = Math.random() * 2 * Math.PI;            // around Y axis
+    const phi = Math.acos(2 * Math.random() - 1);         // inclination for uniform sphere
+
+    // Convert to Cartesian coordinates
+    let x = Math.sin(phi) * Math.cos(theta);
+    let y = Math.sin(phi) * Math.sin(theta);
+    let z = Math.cos(phi);
+
+    // Push stars upward slightly
+    z = z * (1 - verticalBias) + verticalBias;
+
+    // Scale to sky radius with some variation
+    const radius = skyRadius + (Math.random() - 0.5) * skyThickness;
+    star.position.set(x * radius, y * radius, z * radius);
+
     scene.add(star);
   }
 }
-addStars(120);
+
+addStars();
 updateSkyAndCelestials();
 
 
@@ -133,7 +169,7 @@ const groundTexture = new THREE.TextureLoader().load('assets/grass.jpg');
 groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(10, 10);
 const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(50, 50),
+  new THREE.PlaneGeometry(500, 500),
   new THREE.MeshStandardMaterial({ color: 0x228B22 })
 );
 ground.rotation.x = -Math.PI / 2;
@@ -227,11 +263,47 @@ function addTree(x, z) {
   treeBody.position.set(x, 5, z);
   world.addBody(treeBody);
 }
-addTree(5, 3);
-addTree(5, 5);
+
+// --- Efficiently add many trees outside playable area using InstancedMesh ---
+function addInstancedForestTrees() {
+  const min = -250, max = 250;
+  const playMin = -150, playMax = 150;
+  const treeCount = 4000; // Adjust for density
+
+  // Trunk instancing
+  const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, 10, 8);
+  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+  const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
+
+  // Leaves instancing
+  const leavesGeometry = new THREE.SphereGeometry(2, 16, 16);
+  const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+  const leavesMesh = new THREE.InstancedMesh(leavesGeometry, leavesMaterial, treeCount);
+
+  let instance = 0;
+  for (let i = 0; i < treeCount; i++) {
+    let x, z;
+    // Only place trees outside the playable area
+    do {
+      x = Math.random() * (max - min) + min;
+      z = Math.random() * (max - min) + min;
+    } while (x > (playMin -1) && x < (playMax + 1) && z > (playMin -1) && z < (playMax + 1));
+
+    const trunkMatrix = new THREE.Matrix4().setPosition(x, 5, z);
+    trunkMesh.setMatrixAt(instance, trunkMatrix);
+
+    const leavesMatrix = new THREE.Matrix4().setPosition(x, 10, z);
+    leavesMesh.setMatrixAt(instance, leavesMatrix);
+
+    instance++;
+  }
+  scene.add(trunkMesh);
+  scene.add(leavesMesh);
+}
+addInstancedForestTrees();
 
 
-// --- Example: Call updateSkyAndCelestials in your animation loop for smooth updates ---
+
 const timeStep = 1 / 60;
 
 function animate() {
@@ -239,6 +311,10 @@ function animate() {
 
   handlePlayerMovement();
   world.step(timeStep); // advance physics
+
+   const minX = -150, maxX = 150, minZ = -150, maxZ = 150;
+   mushroomBodyPhysics.position.x = Math.max(minX, Math.min(maxX, mushroomBodyPhysics.position.x));
+   mushroomBodyPhysics.position.z = Math.max(minZ, Math.min(maxZ, mushroomBodyPhysics.position.z));
 
   // Sync 3D model with physics
   mushroomGroup.position.copy(mushroomBodyPhysics.position);

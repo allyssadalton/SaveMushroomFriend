@@ -201,6 +201,22 @@ The sky looks like it's evening time
 
 - **Iteration 9:**  
   - **Goal/Task/Rationale:**  
+  Add in a game start screen. Whenever the user presses any key, the screen goes away and the game starts.
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      I added some html to the index.html file to show the screen. I also added some things in the main.js to pause the game whenever esc is pressed.
+      
+- **Response/Result:**
+  Game pauses and don't start until a key is pressed at the start
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+Done
+
+- **Iteration 10:**  
+  - **Goal/Task/Rationale:**  
   
       
   - **What do you do?**   
@@ -214,7 +230,110 @@ The sky looks like it's evening time
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
 
-- **Iteration 10:**  
+
+- **Iteration 11:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+
+- **Iteration 12:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+- **Iteration 13:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+
+
+- **Iteration 14:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+
+- **Iteration 15:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+
+- **Iteration 16:**  
+  - **Goal/Task/Rationale:**  
+  
+      
+  - **What do you do?**   
+    {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
+      
+      
+- **Response/Result:**
+  
+
+  
+
+- **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
+
+
+
+- **Iteration 17:**  
   - **Goal/Task/Rationale:**  
   
       
