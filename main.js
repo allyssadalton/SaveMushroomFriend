@@ -8,8 +8,10 @@ var gameRunning = false;
 
 let gameStarted = false;
 let gamePaused = false;
+let gameRestart = false;
 const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
+const restartScreen = document.getElementById("restartScreen");
 
 // Start game on any key press
 window.addEventListener("keydown", (e) => {
@@ -25,8 +27,25 @@ window.addEventListener("keydown", (e) => {
     gamePaused = !gamePaused;
     pauseOverlay.style.display = gamePaused ? "flex" : "none";
     gameRunning = !gamePaused;
+    
   }
+
+  if (e.key === 'R' || e.key === 'r' && gamePaused){
+    gameRestart = true;
+    pauseOverlay.style.display = "none";
+    restartScreen.style.display = "flex";
+  }
+
+  if (e.key === '1' && gameRestart){
+    gameRestart = false;
+    restartScreen.style.display = "none";
+    pauseOverlay.style.display = gamePaused ? "flex" : "none"; 
+  }
+
+  if (e.key === '0' && gameRestart){window.location.reload();}
 });
+
+
 
 setInterval(() => {
   if (!gameRunning) return;
@@ -266,9 +285,9 @@ function addTree(x, z) {
 
 // --- Efficiently add many trees outside playable area using InstancedMesh ---
 function addInstancedForestTrees() {
-  const min = -250, max = 250;
+  const min = -155, max = 155;
   const playMin = -150, playMax = 150;
-  const treeCount = 4000; // Adjust for density
+  const treeCount = 200; // Adjust for density
 
   // Trunk instancing
   const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, 10, 8);

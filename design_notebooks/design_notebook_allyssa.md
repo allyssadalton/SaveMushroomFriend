@@ -217,19 +217,19 @@ Done
 
 - **Iteration 10:**  
   - **Goal/Task/Rationale:**  
-  
+  Added restart button
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      I added another screen overlay so whenever you have the game paused and press r another screen shows up saying to press 0 or 1 if you want to restart or go back.
       
 - **Response/Result:**
-  
+  You're able to restart the game
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+Done
 
 - **Iteration 11:**  
   - **Goal/Task/Rationale:**  
