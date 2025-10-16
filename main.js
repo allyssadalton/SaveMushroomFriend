@@ -5,6 +5,8 @@ import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cann
 let hour = 21; 
 let minute = 0;
 var gameRunning = false;
+const inventory = [];
+
 
 let gameStarted = false;
 let gamePaused = false;
@@ -12,6 +14,13 @@ let gameRestart = false;
 const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const restartScreen = document.getElementById("restartScreen");
+
+// --- Mouse camera control ---
+let isRightMouseDown = false;
+let previousMouseX = 0;
+let cameraAngle = 0; // horizontal angle around the player
+const cameraRadius = 7; // distance behind player
+
 
 // Start game on any key press
 window.addEventListener("keydown", (e) => {
@@ -45,30 +54,60 @@ window.addEventListener("keydown", (e) => {
   if (e.key === '0' && gameRestart){window.location.reload();}
 });
 
-
-
+// Game clock runs faster: 2 in-game hours = 1 real minute
 setInterval(() => {
   if (!gameRunning) return;
-  minute++;
+
+  // Each real second = 2 in-game minutes
+  minute += 2;
+
   if (minute >= 60) {
-    minute = 0;
-    hour++;
+    hour += Math.floor(minute / 60);
+    minute = minute % 60;
     if (hour >= 24) hour = 0;
   }
+
   // Stop at 6pm (18:00)
   if (hour === 18 && minute === 0) {
     gameRunning = false;
-    // Show end game message
     document.getElementById('clock').innerText = 'Game Over!';
   }
+
   updateClockDisplay();
   updateSkyAndCelestials();
 }, 1000);
+
 
 function updateClockDisplay() {
   const pad = n => n.toString().padStart(2, '0');
   document.getElementById('clock').innerText = `${pad(hour)}:${pad(minute)}`;
 }
+
+// Mouse controls
+window.addEventListener('mousedown', (e) => {
+  if (e.button === 2) { // right mouse button
+    isRightMouseDown = true;
+    previousMouseX = e.clientX;
+  }
+});
+
+window.addEventListener('mouseup', (e) => {
+  if (e.button === 2) {
+    isRightMouseDown = false;
+  }
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (isRightMouseDown) {
+    const deltaX = e.clientX - previousMouseX;
+    previousMouseX = e.clientX;
+    cameraAngle -= deltaX * 0.005; // sensitivity
+  }
+});
+
+// prevent default right-click menu
+window.addEventListener('contextmenu', (e) => e.preventDefault());
+
 
 
 
@@ -97,9 +136,18 @@ moon.position.set(0, 20, -30); // initial position, far in the sky
 scene.add(moon);
 
 // Sunlight (for day)
-const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+// --- Lighting Setup ---
+const sunLight = new THREE.DirectionalLight(0xffffff, 0); // start off (night)
 sunLight.position.set(5, 10, 7);
 scene.add(sunLight);
+
+const moonLight = new THREE.DirectionalLight(0x8899ff, 0.5); // cool blue tone for moonlight
+moonLight.position.set(-5, 10, -7);
+scene.add(moonLight);
+
+const ambientLight = new THREE.AmbientLight(0x222244, 0.4); // dim night ambient
+scene.add(ambientLight);
+
 
 // --- Sky and Celestial Update Function ---
 function updateSkyAndCelestials() {
@@ -108,26 +156,49 @@ function updateSkyAndCelestials() {
     scene.background.set(0x25254a); // night sky
     sun.visible = false;
     moon.visible = true;
-    // Move moon in an arc across the sky
-    const t = ((hour >= 21 ? hour - 21 : hour + 3) * 60 + minute) / (8 * 60); // 8 hours: 9pm-5am
-    const angle = Math.PI * (1 - t); // from left (moonrise) to right (moonset)
+
+    // Moon arc
+    const t = ((hour >= 21 ? hour - 21 : hour + 3) * 60 + minute) / (8 * 60);
+    const angle = Math.PI * (1 - t);
     moon.position.set(20 * Math.cos(angle), 15 + 10 * Math.sin(angle), -30);
+
+    // Lighting adjustments
+    sunLight.intensity = 0;
+    moonLight.intensity = 0.6;
+    ambientLight.color.set(0x222244);
+    ambientLight.intensity = 0.5;
+
   } else if (hour >= 5 && hour < 18) {
     // Day: 5am to 6pm
-    scene.background.set(0x87ceeb); // day sky
+    scene.background.set(0x87ceeb); // sky blue
     sun.visible = true;
     moon.visible = false;
-    // Move sun in an arc across the sky
-    const t = ((hour - 5) * 60 + minute) / (13 * 60); // 13 hours: 5am-6pm
-    const angle = Math.PI * t; // from left (sunrise) to right (sunset)
+
+    // Sun arc
+    const t = ((hour - 5) * 60 + minute) / (13 * 60);
+    const angle = Math.PI * t;
     sun.position.set(20 * Math.cos(angle), 15 + 10 * Math.sin(angle), -30);
+
+    // Lighting adjustments
+    sunLight.intensity = 1;
+    moonLight.intensity = 0;
+    ambientLight.color.set(0xffffff);
+    ambientLight.intensity = 0.8;
+
   } else {
-    // Evening: 6pm-9pm (transition)
-    scene.background.set(0x2c2255); // evening sky
+    // Evening: 6pm–9pm transition
+    scene.background.set(0x2c2255);
     sun.visible = false;
     moon.visible = false;
+
+    // Smooth lighting fade
+    const eveningProgress = (hour - 18 + minute / 60) / 3;
+    sunLight.intensity = Math.max(0, 1 - eveningProgress);
+    moonLight.intensity = Math.min(0.6, eveningProgress * 0.6);
+    ambientLight.intensity = 0.6 - eveningProgress * 0.2;
   }
 }
+
 
 
 // Stars
@@ -177,11 +248,6 @@ camera.position.set(0, 3, 8);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
-// Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
-scene.add(ambientLight);
-
 
 // Ground
 const groundTexture = new THREE.TextureLoader().load('assets/grass.jpg');
@@ -243,14 +309,41 @@ function handlePlayerMovement() {
   const force = 10;
   const vel = mushroomBodyPhysics.velocity;
 
-  if (keys['w'] || keys['arrowup']) vel.z = -force;
-  else if (keys['s'] || keys['arrowdown']) vel.z = force;
-  else vel.z = 0;
+  // Direction vector based on camera angle
+  const forward = new CANNON.Vec3(
+    Math.sin(cameraAngle),
+    0,
+    Math.cos(cameraAngle)
+  );
+  const right = new CANNON.Vec3(
+    Math.cos(cameraAngle),
+    0,
+    -Math.sin(cameraAngle)
+  );
 
-  if (keys['a'] || keys['arrowleft']) vel.x = -force;
-  else if (keys['d'] || keys['arrowright']) vel.x = force;
-  else vel.x = 0;
+  // Reset velocity each frame for smooth movement
+  vel.x = 0;
+  vel.z = 0;
+
+  // Move relative to camera orientation
+  if (keys['w'] || keys['arrowup']) {
+    vel.x += -forward.x * force;
+    vel.z += -forward.z * force;
+  }
+  if (keys['s'] || keys['arrowdown']) {
+    vel.x += forward.x * force;
+    vel.z += forward.z * force;
+  }
+  if (keys['a'] || keys['arrowleft']) {
+    vel.x += -right.x * force;
+    vel.z += -right.z * force;
+  }
+  if (keys['d'] || keys['arrowright']) {
+    vel.x += right.x * force;
+    vel.z += right.z * force;
+  }
 }
+
 
 // Handle resizing
 window.addEventListener('resize', () => {
@@ -321,6 +414,36 @@ function addInstancedForestTrees() {
 }
 addInstancedForestTrees();
 
+function updateInventoryDisplay() {
+  const invDiv = document.getElementById('inventory');
+  invDiv.innerText = `Inventory: ${inventory.length} / 10 items`;
+}
+// --- ITEM SYSTEM ---
+const items = [];
+const itemCount = 10;
+
+// Load textures and place randomly
+// Load textures and place randomly
+for (let i = 1; i <= itemCount; i++) {
+  const texture = new THREE.TextureLoader().load(`/assets/item${i}.png`);
+  const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
+  const geometry = new THREE.PlaneGeometry(1, 1.2);
+  const itemMesh = new THREE.Mesh(geometry, material);
+
+  const x = Math.random() * 300 - 150;
+  const z = Math.random() * 300 - 150;
+  itemMesh.position.set(x, 0.6, z);
+
+  // Rotate the plane to face camera (Y-axis)
+  itemMesh.rotation.y = Math.random() * Math.PI * 2;
+  itemMesh.rotation.x = -Math.PI / 2; // so it faces up, or remove for upright item
+
+  scene.add(itemMesh);
+  items.push(itemMesh);
+}
+
+updateInventoryDisplay();
+
 
 
 const timeStep = 1 / 60;
@@ -340,10 +463,33 @@ function animate() {
 
   updateSkyAndCelestials();
 
+  // Check for item pickups
+  for (let i = items.length - 1; i >= 0; i--) {
+    const item = items[i];
+    const dx = mushroomGroup.position.x - item.position.x;
+    const dz = mushroomGroup.position.z - item.position.z;
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance < 1.5) { // pick-up radius
+      scene.remove(item);     // remove from scene
+      items.splice(i, 1);     // remove from array
+      inventory.push(`Item ${inventory.length + 1}`); // add to inventory
+      updateInventoryDisplay();
+    }
+  }
+
+  for (const item of items) {
+    item.lookAt(camera.position);
+  }
+
+
+
   renderer.render(scene, camera);
-  camera.position.x = mushroomGroup.position.x;
-  camera.position.y = mushroomGroup.position.y + 3; // height above
-  camera.position.z = mushroomGroup.position.z + 7; // distance behind
+  // --- Orbit camera around player when right mouse is held ---
+  const camX = mushroomGroup.position.x + cameraRadius * Math.sin(cameraAngle);
+  const camZ = mushroomGroup.position.z + cameraRadius * Math.cos(cameraAngle);
+  camera.position.set(camX, mushroomGroup.position.y + 3, camZ);
   camera.lookAt(mushroomGroup.position);
+
 }
 animate();
