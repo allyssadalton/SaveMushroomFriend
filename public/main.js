@@ -6,7 +6,9 @@ let hour = 21;
 let minute = 0;
 var gameRunning = false;
 const inventory = [];
-
+let cheater = false;
+let doorOpen = false;
+let gameEnded = false;
 
 let gameStarted = false;
 let gamePaused = false;
@@ -14,7 +16,7 @@ let gameRestart = false;
 const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const restartScreen = document.getElementById("restartScreen");
-
+const inventoryItemAmount = document.getElementById("inventoryItemAmount");
 // --- Mouse camera control ---
 let isRightMouseDown = false;
 let previousMouseX = 0;
@@ -52,6 +54,13 @@ window.addEventListener("keydown", (e) => {
   }
 
   if (e.key === '0' && gameRestart){window.location.reload();}
+
+  if ((e.key === 'Z' || e.key === 'z') && cheater) {
+  mushroomGroup.position.set(0, 0, 0);
+  mushroomBodyPhysics.position.set(0, 1, 0);
+  inventoryItemAmount.style.display = "none";
+  cheater = false;
+}
 });
 
 // Game clock runs faster: 2 in-game hours = 1 real minute
@@ -443,9 +452,45 @@ for (let i = 1; i <= itemCount; i++) {
 }
 
 updateInventoryDisplay();
+// --- HOUSE WITH DOOR ---
+const house = new THREE.Group();
 
+// House body
+const houseBody = new THREE.Mesh(
+  new THREE.BoxGeometry(6, 4, 6),
+  new THREE.MeshStandardMaterial({ color: 0x8b0000 }) // dark red walls
+);
+houseBody.position.y = 2; // lift off ground
+house.add(houseBody);
 
+// Roof
+const roof = new THREE.Mesh(
+  new THREE.ConeGeometry(5, 3, 4),
+  new THREE.MeshStandardMaterial({ color: 0x654321 }) // brown roof
+);
+roof.position.y = 5;
+roof.rotation.y = Math.PI / 4;
+house.add(roof);
 
+// Door
+const doorGeometry = new THREE.BoxGeometry(1.8, 3, 0.2);
+const doorMaterial = new THREE.MeshStandardMaterial({ color: 0x4b3621 });
+const door = new THREE.Mesh(doorGeometry, doorMaterial);
+door.position.set(0, 1.5, 3.01); // center front of house
+house.add(door);
+
+// ✅ Set the new position
+house.position.set(0, 0, -150);
+
+scene.add(house);
+
+function enterHouse() {
+  gameEnded = true;
+  gameRunning = false;
+  document.body.style.background = "black";
+  scene.background = new THREE.Color(0x000000);
+  document.getElementById('clock').innerText = "You saved JimBob!";
+}
 const timeStep = 1 / 60;
 
 function animate() {
@@ -480,6 +525,36 @@ function animate() {
 
   for (const item of items) {
     item.lookAt(camera.position);
+  }
+
+  if (!doorOpen && !gameEnded) {
+    const dx = mushroomBodyPhysics.position.x - house.position.x;
+    const dz = mushroomBodyPhysics.position.z - (house.position.z + 3); // front face
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance < 2) { // near the door
+      if (inventory.length < 10) { 
+        inventoryItemAmount.style.display = "flex";
+        cheater = true;
+      } 
+      else {
+        doorOpen = true; // prevents this from re-triggering
+
+
+        // Animate door opening only once
+        let openProgress = 0;
+        const openSpeed = 0.05;
+        const doorOpenInterval = setInterval(() => {
+          openProgress += openSpeed;
+          door.rotation.y = -openProgress;
+
+          if (door.rotation.y <= -Math.PI / 2) { // stop at 90 degrees
+            clearInterval(doorOpenInterval);
+            enterHouse();
+          }
+        }, 16);
+      }
+    }
   }
 
 
