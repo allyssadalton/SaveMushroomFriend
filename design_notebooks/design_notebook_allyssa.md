@@ -233,36 +233,115 @@ Done
 
 - **Iteration 11:**  
   - **Goal/Task/Rationale:**  
-  
+  I added scoring and end screen
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
       
-      
+      I asked Chatgpt:
+      If they complete in 21 hours, they get 0 time points. If they complete in 15.5 hours, they get 155 pounds. Can you do that for me
 - **Response/Result:**
+  
+  // --- Calculate time elapsed since start (starts at 21:00) ---
+  // Handle overnight wraparound (e.g., from 21 → 3am)
+  let elapsedHours = hour >= 21
+    ? (hour - 21) + (minute / 60)
+    : (hour + 3) + (minute / 60); // since 24 - 21 = 3 hours past midnight
+
+  // --- Clamp between 0 and 21 just for safety ---
+  elapsedHours = Math.min(Math.max(elapsedHours, 0), 21);
+
+  // --- Scoring system ---
+  // 15.5 hours = £155
+  // 21 hours  = £0
+  // Anything faster than 15.5 earns >155 (optional cap)
+  const maxHours = 21;
+  const bestHours = 15.5;
+  const maxScore = 155;
+
+  let score = ((maxHours - elapsedHours) / (maxHours - bestHours)) * maxScore;
+  score = Math.max(0, Math.min(score, maxScore)); // clamp to 0–155
+  score = Math.round(score); // round for clean display
+
+  // --- Display results ---
+  timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nReward: £${score}`;
   
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
 
-
+Done
 
 - **Iteration 12:**  
   - **Goal/Task/Rationale:**  
-  
+  Add trees back into the game without it being super slow
       
   - **What do you do?**   
     {If you ask AI, provide your prompt and link. If you fix it yourself, describe how you do it.}  
-      
+      Can you make trees randomly spawn in the playing area without it making the game super slow? I want it to be pretty full
       
 - **Response/Result:**
-  
+  function addDenseForest() {
+  const areaSize = 150; // half-width of playable area
+  const treeCount = 800; // increase for denser forest (try 1000+ if your GPU handles it)
+  const minDistance = 3; // spacing so trees aren't too close
+
+  const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 8, 6);
+  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+  const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
+
+  const leavesGeometry = new THREE.SphereGeometry(1.8, 10, 10);
+  const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+  const leavesMesh = new THREE.InstancedMesh(leavesGeometry, leavesMaterial, treeCount);
+
+  const positions = [];
+  const matrix = new THREE.Matrix4();
+
+  for (let i = 0; i < treeCount; i++) {
+    let x, z, tooClose;
+    let attempts = 0;
+    do {
+      x = Math.random() * (areaSize * 2) - areaSize;
+      z = Math.random() * (areaSize * 2) - areaSize;
+      tooClose = false;
+      // Prevent clustering too close to other trees
+      for (const p of positions) {
+        if (Math.hypot(p.x - x, p.z - z) < minDistance) {
+          tooClose = true;
+          break;
+        }
+      }
+      attempts++;
+    } while (tooClose && attempts < 10);
+    positions.push({ x, z });
+
+    // Random tree height & slight tilt for realism
+    const scale = 0.8 + Math.random() * 0.6;
+    const tiltX = (Math.random() - 0.5) * 0.1;
+    const tiltZ = (Math.random() - 0.5) * 0.1;
+
+    matrix.makeRotationFromEuler(new THREE.Euler(tiltX, Math.random() * Math.PI * 2, tiltZ));
+    matrix.setPosition(x, 4 * scale, z);
+    matrix.scale(new THREE.Vector3(scale, scale, scale));
+
+    trunkMesh.setMatrixAt(i, matrix);
+    leavesMesh.setMatrixAt(i, matrix);
+  }
+
+  trunkMesh.instanceMatrix.needsUpdate = true;
+  leavesMesh.instanceMatrix.needsUpdate = true;
+  scene.add(trunkMesh);
+  scene.add(leavesMesh);
+}
+
+addDenseForest();
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-
+  Trees were added
+Done
 
 - **Iteration 13:**  
   - **Goal/Task/Rationale:**  
@@ -273,7 +352,6 @@ Done
       
       
 - **Response/Result:**
-  
 
   
 

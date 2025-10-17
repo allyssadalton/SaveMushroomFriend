@@ -9,7 +9,7 @@ const inventory = [];
 let cheater = false;
 let doorOpen = false;
 let gameEnded = false;
-
+let score = 0;
 let gameStarted = false;
 let gamePaused = false;
 let gameRestart = false;
@@ -17,6 +17,8 @@ const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const restartScreen = document.getElementById("restartScreen");
 const inventoryItemAmount = document.getElementById("inventoryItemAmount");
+const winnerWinner = document.getElementById("winnerWiner");
+const loserLoser = document.getElementById("loserLoser");
 // --- Mouse camera control ---
 let isRightMouseDown = false;
 let previousMouseX = 0;
@@ -80,7 +82,10 @@ setInterval(() => {
   if (hour === 18 && minute === 0) {
     gameRunning = false;
     document.getElementById('clock').innerText = 'Game Over!';
+    loserLoser.style.display = "flex"; // show win screen
+   timeValue.innerText = `Score: ${score += (inventory.length() * 10)}`;
   }
+
 
   updateClockDisplay();
   updateSkyAndCelestials();
@@ -487,10 +492,97 @@ scene.add(house);
 function enterHouse() {
   gameEnded = true;
   gameRunning = false;
-  document.body.style.background = "black";
-  scene.background = new THREE.Color(0x000000);
-  document.getElementById('clock').innerText = "You saved JimBob!";
+  
+  
+  // --- Calculate time elapsed since start (starts at 21:00) ---
+  // Handle overnight wraparound (e.g., from 21 → 3am)
+  let elapsedHours = hour >= 21
+    ? (hour - 21) + (minute / 60)
+    : (hour + 3) + (minute / 60); // since 24 - 21 = 3 hours past midnight
+
+  // --- Clamp between 0 and 21 just for safety ---
+  elapsedHours = Math.min(Math.max(elapsedHours, 0), 21);
+
+  // --- Scoring system ---
+  // 15.5 hours = £155
+  // 21 hours  = £0
+  // Anything faster than 15.5 earns >155 (optional cap)
+  const maxHours = 21;
+  const bestHours = 15.5;
+  const maxScore = 155;
+
+  let score = ((maxHours - elapsedHours) / (maxHours - bestHours)) * maxScore;
+  score = Math.max(0, Math.min(score, maxScore)); // clamp to 0–155
+  score = Math.round(score); // round for clean display
+  score = inventory.length() * 10;
+
+  // --- Display results ---
+  winnerWinner.style.display = "flex"; // show win screen
+  timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nScore: ${score}`;
+  
+
 }
+
+function addDenseForest() {
+  const areaSize = 150; // half-width of playable area
+  const treeCount = 800; // increase for denser forest (try 1000+ if your GPU handles it)
+  const minDistance = 3; // spacing so trees aren't too close
+
+  const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 8, 6);
+  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+  const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
+
+  const leavesGeometry = new THREE.SphereGeometry(1.8, 10, 10);
+  const leavesMaterial = new THREE.MeshStandardMaterial({ color: 0x228b22 });
+  const leavesMesh = new THREE.InstancedMesh(leavesGeometry, leavesMaterial, treeCount);
+
+  const positions = [];
+  const matrix = new THREE.Matrix4();
+
+  for (let i = 0; i < treeCount; i++) {
+    let x, z, tooClose;
+    let attempts = 0;
+    do {
+      x = Math.random() * (areaSize * 2) - areaSize;
+      z = Math.random() * (areaSize * 2) - areaSize;
+      tooClose = false;
+      // Prevent clustering too close to other trees
+      for (const p of positions) {
+        if (Math.hypot(p.x - x, p.z - z) < minDistance) {
+          tooClose = true;
+          break;
+        }
+      }
+      attempts++;
+    } while (tooClose && attempts < 10);
+    positions.push({ x, z });
+
+    // Random tree height & slight tilt for realism
+    const scale = 0.8 + Math.random() * 0.6;
+    const tiltX = (Math.random() - 0.5) * 0.1;
+    const tiltZ = (Math.random() - 0.5) * 0.1;
+
+    const trunkMatrix = new THREE.Matrix4();
+    trunkMatrix.makeRotationFromEuler(new THREE.Euler(tiltX, Math.random() * Math.PI * 2, tiltZ));
+    trunkMatrix.setPosition(x, 4 * scale, z);
+    trunkMatrix.scale(new THREE.Vector3(scale, scale, scale));
+    trunkMesh.setMatrixAt(i, trunkMatrix);
+
+    // --- Create leaves transform (higher up) ---
+    const leavesMatrix = new THREE.Matrix4();
+    leavesMatrix.makeRotationFromEuler(new THREE.Euler(tiltX, Math.random() * Math.PI * 2, tiltZ));
+    leavesMatrix.setPosition(x, (4 + 4 * scale) , z); // move leaves up
+    leavesMatrix.scale(new THREE.Vector3(scale, scale, scale));
+    leavesMesh.setMatrixAt(i, leavesMatrix);
+  }
+
+  trunkMesh.instanceMatrix.needsUpdate = true;
+  leavesMesh.instanceMatrix.needsUpdate = true;
+  scene.add(trunkMesh);
+  scene.add(leavesMesh);
+}
+
+addDenseForest();
 const timeStep = 1 / 60;
 
 function animate() {
@@ -539,8 +631,6 @@ function animate() {
       } 
       else {
         doorOpen = true; // prevents this from re-triggering
-
-
         // Animate door opening only once
         let openProgress = 0;
         const openSpeed = 0.05;
@@ -553,12 +643,10 @@ function animate() {
             enterHouse();
           }
         }, 16);
+
       }
     }
   }
-
-
-
   renderer.render(scene, camera);
   // --- Orbit camera around player when right mouse is held ---
   const camX = mushroomGroup.position.x + cameraRadius * Math.sin(cameraAngle);
