@@ -313,7 +313,6 @@ const mushroomBodyPhysics = new CANNON.Body({
 mushroomBodyPhysics.linearDamping = 0.9;
 world.addBody(mushroomBodyPhysics);
 
-
 // Simple keyboard controls for mushroom movement (arrows and WASD)
 const keys = {};
 window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
@@ -436,10 +435,49 @@ function updateInventoryDisplay() {
 const items = [];
 const itemCount = 10;
 
+// Place flashlight once in front of mushroom
+const textureLoader = new THREE.TextureLoader();
+const flashlightTexture = textureLoader.load('assets/flashlight.png');
+
+const flashlightMaterial = new THREE.MeshBasicMaterial({
+  map: flashlightTexture,
+  transparent: true,
+  side: THREE.DoubleSide,
+});
+
+const flashlightGeometry = new THREE.PlaneGeometry(1, 1.2);
+const flashlightMesh = new THREE.Mesh(flashlightGeometry, flashlightMaterial);
+
+const offsetDistance = 2;
+flashlightMesh.position.set(
+  mushroomGroup.position.x + Math.sin(cameraAngle) * offsetDistance,
+  0.6,
+  mushroomGroup.position.z + Math.cos(cameraAngle) * offsetDistance
+);
+
+flashlightMesh.rotation.x = -Math.PI / 2;
+
+scene.add(flashlightMesh);
+items.push(flashlightMesh); // now works, items exists
+
+
 // Load textures and place randomly
 // Load textures and place randomly
-for (let i = 1; i <= itemCount; i++) {
-  const texture = new THREE.TextureLoader().load(`/assets/item${i}.png`);
+const itemFiles = [
+  'acorn.png',
+  'crystal.png',
+  'honey_jar.png',
+  'leaf.png',
+  'pebble.png',
+  'rope.png',
+  'snail_shell.png',
+  'spiderweb.PNG',
+  'spoon.png',
+  'water.png'
+];
+
+for (const filename of itemFiles) {
+  const texture = textureLoader.load(`assets/${filename}`);
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
   const geometry = new THREE.PlaneGeometry(1, 1.2);
   const itemMesh = new THREE.Mesh(geometry, material);
@@ -447,10 +485,7 @@ for (let i = 1; i <= itemCount; i++) {
   const x = Math.random() * 300 - 150;
   const z = Math.random() * 300 - 150;
   itemMesh.position.set(x, 0.6, z);
-
-  // Rotate the plane to face camera (Y-axis)
   itemMesh.rotation.y = Math.random() * Math.PI * 2;
-  itemMesh.rotation.x = -Math.PI / 2; // so it faces up, or remove for upright item
 
   scene.add(itemMesh);
   items.push(itemMesh);
@@ -597,6 +632,8 @@ function animate() {
 
   // Sync 3D model with physics
   mushroomGroup.position.copy(mushroomBodyPhysics.position);
+
+  
 
   updateSkyAndCelestials();
 
