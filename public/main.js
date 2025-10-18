@@ -17,7 +17,7 @@ const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const restartScreen = document.getElementById("restartScreen");
 const inventoryItemAmount = document.getElementById("inventoryItemAmount");
-const winnerWinner = document.getElementById("winnerWiner");
+const winnerWinner = document.getElementById("winnerWinner");
 const loserLoser = document.getElementById("loserLoser");
 // --- Mouse camera control ---
 let isRightMouseDown = false;
@@ -83,7 +83,7 @@ setInterval(() => {
     gameRunning = false;
     document.getElementById('clock').innerText = 'Game Over!';
     loserLoser.style.display = "flex"; // show win screen
-   timeValue.innerText = `Score: ${score += (inventory.length() * 10)}`;
+   timeValue.innerText = `Score: ${score += (inventory.length * 10)}`;
   }
 
 
@@ -129,6 +129,16 @@ window.addEventListener('contextmenu', (e) => e.preventDefault());
 // Scene setup
 const scene = new THREE.Scene();
 const world = new CANNON.World();
+// --- Physics materials ---
+const mushroomMaterial = new CANNON.Material("mushroomMaterial");
+const treeMaterial = new CANNON.Material("treeMaterial");
+
+// Define contact behavior between mushroom and trees
+const contactMaterial = new CANNON.ContactMaterial(mushroomMaterial, treeMaterial, {
+  friction: 0.3,
+  restitution: 0.9, // how “bouncy” the collision feels
+});
+world.addContactMaterial(contactMaterial);
 world.gravity.set(0, -9.82, 0); // Gravity!
 scene.background = new THREE.Color(0x25254a); // Midnight Blue
 
@@ -309,6 +319,7 @@ const mushroomBodyPhysics = new CANNON.Body({
   mass: 1,
   shape: mushroomShape,
   position: new CANNON.Vec3(0, 1, 0),
+  material: mushroomMaterial,
 });
 mushroomBodyPhysics.linearDamping = 0.9;
 world.addBody(mushroomBodyPhysics);
@@ -319,7 +330,7 @@ window.addEventListener('keydown', (e) => keys[e.key.toLowerCase()] = true);
 window.addEventListener('keyup', (e) => keys[e.key.toLowerCase()] = false);
 
 function handlePlayerMovement() {
-  const force = 10;
+  const force = 20;
   const vel = mushroomBodyPhysics.velocity;
 
   // Direction vector based on camera angle
@@ -356,6 +367,23 @@ function handlePlayerMovement() {
     vel.z += right.z * force;
   }
 }
+  // Camera-relative directions
+  /*
+  const forward = new CANNON.Vec3(Math.sin(cameraAngle), 0, Math.cos(cameraAngle));
+  const right = new CANNON.Vec3(Math.cos(cameraAngle), 0, -Math.sin(cameraAngle));
+
+  const move = new CANNON.Vec3(0, 0, 0);
+  if (keys['w'] || keys['arrowup']) move.vsub(forward, move);
+  if (keys['s'] || keys['arrowdown']) move.vadd(forward, move);
+  if (keys['a'] || keys['arrowleft']) move.vsub(right, move);
+  if (keys['d'] || keys['arrowright']) move.vadd(right, move);
+
+  if (move.lengthSquared() > 0) {
+    move.normalize();
+    mushroomBodyPhysics.applyForce(move.scale(force), mushroomBodyPhysics.position);
+  }
+}
+*/
 
 
 // Handle resizing
@@ -366,6 +394,7 @@ window.addEventListener('resize', () => {
 });
 
 // TREESSSS
+const treeBodies = [];
 function addTree(x, z) {
   const trunk = new THREE.Mesh(
     new THREE.CylinderGeometry(0.5, 0.7, 10, 8),
@@ -383,10 +412,15 @@ function addTree(x, z) {
 
   // Add physics collider for trunk
   const treeShape = new CANNON.Cylinder(0.5, 0.7, 10, 8);
-  const treeBody = new CANNON.Body({ mass: 0 });
+  const treeBody = new CANNON.Body({
+    mass: 0,
+    material: treeMaterial,
+  });
   treeBody.addShape(treeShape);
   treeBody.position.set(x, 5, z);
   world.addBody(treeBody);
+  treeBodies.push(treeBody); // <--- store it
+
 }
 
 // --- Efficiently add many trees outside playable area using InstancedMesh ---
@@ -429,7 +463,7 @@ addInstancedForestTrees();
 
 function updateInventoryDisplay() {
   const invDiv = document.getElementById('inventory');
-  invDiv.innerText = `Inventory: ${inventory.length} / 10 items`;
+  invDiv.innerText = `Inventory: ${inventory.length} / 11 items`;
 }
 // --- ITEM SYSTEM ---
 const items = [];
@@ -437,7 +471,7 @@ const itemCount = 10;
 
 // Place flashlight once in front of mushroom
 const textureLoader = new THREE.TextureLoader();
-const flashlightTexture = textureLoader.load('assets/flashlight.png');
+const flashlightTexture = textureLoader.load('../assets/flashlight.png');
 
 const flashlightMaterial = new THREE.MeshBasicMaterial({
   map: flashlightTexture,
@@ -477,7 +511,7 @@ const itemFiles = [
 ];
 
 for (const filename of itemFiles) {
-  const texture = textureLoader.load(`assets/${filename}`);
+  const texture = textureLoader.load(`../assets/${filename}`);
   const material = new THREE.MeshBasicMaterial({ map: texture, transparent: true });
   const geometry = new THREE.PlaneGeometry(1, 1.2);
   const itemMesh = new THREE.Mesh(geometry, material);
@@ -549,7 +583,7 @@ function enterHouse() {
   let score = ((maxHours - elapsedHours) / (maxHours - bestHours)) * maxScore;
   score = Math.max(0, Math.min(score, maxScore)); // clamp to 0–155
   score = Math.round(score); // round for clean display
-  score = inventory.length() * 10;
+  score = inventory.length * 10;
 
   // --- Display results ---
   winnerWinner.style.display = "flex"; // show win screen
@@ -610,6 +644,18 @@ function addDenseForest() {
     leavesMatrix.scale(new THREE.Vector3(scale, scale, scale));
     leavesMesh.setMatrixAt(i, leavesMatrix);
   }
+  const treeColliderShape = new CANNON.Cylinder(0.5, 0.7, 8, 8);
+  for (let i = 0; i < treeCount; i++) {
+    const { x, z } = positions[i];
+    const treeBody = new CANNON.Body({
+      mass: 0,
+      material: treeMaterial,
+    });
+    treeBody.addShape(treeColliderShape);
+    treeBody.position.set(x, 4, z);
+    world.addBody(treeBody);
+    treeBodies.push(treeBody);
+  }
 
   trunkMesh.instanceMatrix.needsUpdate = true;
   leavesMesh.instanceMatrix.needsUpdate = true;
@@ -618,13 +664,36 @@ function addDenseForest() {
 }
 
 addDenseForest();
-const timeStep = 1 / 60;
+const timeStep = 1 / 120;
+function checkTreeCollisions() {
+  const bounceDistance = 2;
+
+  for (const tree of treeBodies) {
+    const dx = mushroomBodyPhysics.position.x - tree.position.x;
+    const dz = mushroomBodyPhysics.position.z - tree.position.z;
+    const dist = Math.sqrt(dx * dx + dz * dz);
+
+    if (dist < 2) { // roughly touching trunk
+      const angle = Math.atan2(dz, dx);
+      // Move mushroom back by 2 units along the collision normal
+      mushroomBodyPhysics.position.x += Math.cos(angle) * bounceDistance;
+      mushroomBodyPhysics.position.z += Math.sin(angle) * bounceDistance;
+
+      // Optional: apply a little velocity pushback
+      mushroomBodyPhysics.velocity.x = Math.cos(angle) * 5;
+      mushroomBodyPhysics.velocity.z = Math.sin(angle) * 5;
+    }
+  }
+  const treeColliderShape = new CANNON.Cylinder(0.5, 0.7, 8, 8);
+  
+}
 
 function animate() {
   requestAnimationFrame(animate);
 
   handlePlayerMovement();
-  world.step(timeStep); // advance physics
+  world.step(timeStep);
+  //checkTreeCollisions();
 
    const minX = -150, maxX = 150, minZ = -150, maxZ = 150;
    mushroomBodyPhysics.position.x = Math.max(minX, Math.min(maxX, mushroomBodyPhysics.position.x));
@@ -662,7 +731,7 @@ function animate() {
     const distance = Math.sqrt(dx * dx + dz * dz);
 
     if (distance < 2) { // near the door
-      if (inventory.length < 10) { 
+      if (inventory.length < 11) { 
         inventoryItemAmount.style.display = "flex";
         cheater = true;
       } 
@@ -680,7 +749,7 @@ function animate() {
             enterHouse();
           }
         }, 16);
-
+        winnerWinner.style.display = "flex";
       }
     }
   }
