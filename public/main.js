@@ -548,7 +548,8 @@ flashlightMesh.position.set(
 
 flashlightMesh.rotation.x = -Math.PI / 2;
 
-scene.add(flashlightMesh);
+//scene.add(flashlightMesh);
+mushroomGroup.add(flashlightMesh);
 items.push(flashlightMesh); // now works, items exists
 
 
