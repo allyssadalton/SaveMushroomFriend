@@ -804,7 +804,7 @@ function animate() {
     nearbyItem = null;
     const pickupPrompt = document.getElementById('pickupPrompt');
     for (const item of items) {
-      //const distance = mushroomGroup.position.distanceTo(item.mesh.position);
+      if (!item || !item.position) continue;
       const distance = mushroomGroup.position.distanceTo(item.position);
 
       if (distance < 2) {
