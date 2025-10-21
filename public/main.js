@@ -135,7 +135,7 @@ window.addEventListener('keydown', (e) => {
     // Flashlight special behavior
     if (nearbyItem.material?.map?.image?.src?.includes('flashlight.png') && !hasFlashlight) {
       hasFlashlight = true;
-      flashlightLight = new THREE.PointLight(0xffffff, 2, 15);
+      flashlightLight = new THREE.PointLight(0xffffff, 5, 25);
       scene.add(flashlightLight);
     }
 
@@ -548,8 +548,8 @@ flashlightMesh.position.set(
 
 flashlightMesh.rotation.x = -Math.PI / 2;
 
-//scene.add(flashlightMesh);
-mushroomGroup.add(flashlightMesh);
+scene.add(flashlightMesh);
+//mushroomGroup.add(flashlightMesh);
 items.push(flashlightMesh); // now works, items exists
 
 
