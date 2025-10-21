@@ -131,12 +131,12 @@ Done!
     "Can you make it so a point light is coming from the mushrooms front center when the flashlight is added to the inventory?"
       
 - **Response/Result:**
-  A point light now emmits from the mushroom after it is added to the inventory.
+  It doesn't work. :(
 
   
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-Done!
+Discard
 
 - **Iteration 8:**  
   - **Goal/Task/Rationale:**  
@@ -146,11 +146,11 @@ Done!
     "Can you make it so the player has to press the space bar when an item is in close proximity to pick it up and add it to the inventory?"
       
 - **Response/Result:**
-  When a player is in close proximity to an item, they're prompted to pick it up and it gets added to the inventory if they do.
+  Doesn't work.
 
 
 - **Your Evaluation:** {Issues/errors/your decision:done/discard/revise prompt} 
-Done!
+Discard
 
 - **Iteration 9:**  
   - **Goal/Task/Rationale:**  
