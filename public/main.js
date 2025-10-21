@@ -325,7 +325,10 @@ groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(10, 10);
 const ground = new THREE.Mesh(
   new THREE.PlaneGeometry(500, 500),
-  new THREE.MeshStandardMaterial({ color: 0x228B22 })
+  new THREE.MeshStandardMaterial({ 
+    map: groundTexture,  // use the loaded texture
+    side: THREE.DoubleSide, // optional, ensures both sides show
+  })
 );
 ground.rotation.x = -Math.PI / 2;
 scene.add(ground);
