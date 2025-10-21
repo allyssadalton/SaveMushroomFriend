@@ -426,7 +426,7 @@ window.addEventListener('resize', () => {
 });
 
 // 🌲 Load tree bark texture
-const treeBarkTexture = TextureLoader.load('assets/tree.png');
+const treeBarkTexture = new THREE.TextureLoader().load('assets/tree.png');
 treeBarkTexture.wrapS = THREE.RepeatWrapping;
 treeBarkTexture.wrapT = THREE.RepeatWrapping;
 treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
