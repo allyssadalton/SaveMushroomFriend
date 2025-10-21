@@ -457,6 +457,29 @@ function addTree(x, z) {
 
 }
 
+
+
+function updateInventoryDisplay() {
+  const invDiv = document.getElementById('inventory');
+  invDiv.innerText = `Inventory: ${inventory.length} / 11 items`;
+}
+
+
+const treePositions = treeBodies.map(tree => new THREE.Vector3(tree.position.x, tree.position.y, tree.position.z));
+
+// --- ITEM SYSTEM ---
+const items = [];
+const itemCount = 10;
+
+// Place flashlight once in front of mushroom
+const textureLoader = new THREE.TextureLoader();
+const flashlightTexture = textureLoader.load('../assets/flashlight.png');
+// 🌲 Load tree bark texture
+const treeBarkTexture = textureLoader.load('../assets/tree.png');
+treeBarkTexture.wrapS = THREE.RepeatWrapping;
+treeBarkTexture.wrapT = THREE.RepeatWrapping;
+treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
+
 // --- Efficiently add many trees outside playable area using InstancedMesh ---
 function addInstancedForestTrees() {
   const min = -155, max = 155;
@@ -495,29 +518,6 @@ function addInstancedForestTrees() {
   scene.add(trunkMesh);
   scene.add(leavesMesh);
 }
-
-
-function updateInventoryDisplay() {
-  const invDiv = document.getElementById('inventory');
-  invDiv.innerText = `Inventory: ${inventory.length} / 11 items`;
-}
-
-
-const treePositions = treeBodies.map(tree => new THREE.Vector3(tree.position.x, tree.position.y, tree.position.z));
-
-// --- ITEM SYSTEM ---
-const items = [];
-const itemCount = 10;
-
-// Place flashlight once in front of mushroom
-const textureLoader = new THREE.TextureLoader();
-const flashlightTexture = textureLoader.load('../assets/flashlight.png');
-// 🌲 Load tree bark texture
-const treeBarkTexture = textureLoader.load('../assets/tree.png');
-treeBarkTexture.wrapS = THREE.RepeatWrapping;
-treeBarkTexture.wrapT = THREE.RepeatWrapping;
-treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
-
 addDenseForest();
 addInstancedForestTrees();
 const flashlightMaterial = new THREE.MeshBasicMaterial({
