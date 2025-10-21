@@ -495,7 +495,7 @@ function addInstancedForestTrees() {
   scene.add(trunkMesh);
   scene.add(leavesMesh);
 }
-addInstancedForestTrees();
+
 
 function updateInventoryDisplay() {
   const invDiv = document.getElementById('inventory');
@@ -519,6 +519,7 @@ treeBarkTexture.wrapT = THREE.RepeatWrapping;
 treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
 
 addDenseForest();
+addInstancedForestTrees();
 const flashlightMaterial = new THREE.MeshBasicMaterial({
   map: flashlightTexture,
   transparent: true,
