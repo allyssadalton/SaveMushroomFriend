@@ -13,6 +13,9 @@ let score = 0;
 let gameStarted = false;
 let gamePaused = false;
 let gameRestart = false;
+let flashlightLight = null;
+let hasFlashlight = false;
+let nearbyItem = null;
 const startScreen = document.getElementById("startScreen");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const restartScreen = document.getElementById("restartScreen");
@@ -122,7 +125,23 @@ window.addEventListener('mousemove', (e) => {
 // prevent default right-click menu
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+window.addEventListener('keydown', (e) => {
+  if (e.code === 'Space' && nearbyItem) {
+    inventory.push(nearbyItem.name);
 
+    // flashlight special behavior
+    if (nearbyItem.name === 'flashlight.png' && !hasFlashlight) {
+      hasFlashlight = true;
+      flashlightLight = new THREE.PointLight(0xffffff, 2, 15);
+      scene.add(flashlightLight);
+    }
+
+    scene.remove(nearbyItem.mesh);
+    items = items.filter(i => i !== nearbyItem);
+    nearbyItem = null;
+    pickupPrompt.style.display = 'none';
+  }
+});
 
 
 
@@ -260,7 +279,20 @@ function addStars(numStars = 900) {
 addStars();
 updateSkyAndCelestials();
 
+function placeItemRandomly(mesh, treePositions) {
+  let position;
+  let tooClose;
+  do {
+    position = new THREE.Vector3(
+      (Math.random() - 0.5) * 100, // adjust to map size
+      0,
+      (Math.random() - 0.5) * 100
+    );
+    tooClose = treePositions.some(treePos => treePos.distanceTo(position) < 5);
+  } while (tooClose);
 
+  mesh.position.copy(position);
+}
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
@@ -465,6 +497,10 @@ function updateInventoryDisplay() {
   const invDiv = document.getElementById('inventory');
   invDiv.innerText = `Inventory: ${inventory.length} / 11 items`;
 }
+
+addDenseForest();
+const treePositions = treeBodies.map(tree => new THREE.Vector3(tree.position.x, tree.position.y, tree.position.z));
+
 // --- ITEM SYSTEM ---
 const items = [];
 const itemCount = 10;
@@ -516,9 +552,8 @@ for (const filename of itemFiles) {
   const geometry = new THREE.PlaneGeometry(1, 1.2);
   const itemMesh = new THREE.Mesh(geometry, material);
 
-  const x = Math.random() * 300 - 150;
-  const z = Math.random() * 300 - 150;
-  itemMesh.position.set(x, 0.6, z);
+  placeItemRandomly(itemMesh, treePositions);
+
   itemMesh.rotation.y = Math.random() * Math.PI * 2;
 
   scene.add(itemMesh);
@@ -663,7 +698,7 @@ function addDenseForest() {
   scene.add(leavesMesh);
 }
 
-addDenseForest();
+
 const timeStep = 1 / 120;
 function checkTreeCollisions() {
   const bounceDistance = 2;
@@ -702,9 +737,14 @@ function animate() {
   // Sync 3D model with physics
   mushroomGroup.position.copy(mushroomBodyPhysics.position);
 
-  
-
   updateSkyAndCelestials();
+
+  if (hasFlashlight && flashlightLight) {
+    // Position flashlight slightly in front of the mushroom
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    flashlightLight.position.copy(mushroom.position).add(dir.multiplyScalar(2));
+  }
 
   // Check for item pickups
   for (let i = items.length - 1; i >= 0; i--) {
@@ -718,6 +758,14 @@ function animate() {
       items.splice(i, 1);     // remove from array
       inventory.push(`Item ${inventory.length + 1}`); // add to inventory
       updateInventoryDisplay();
+    }
+
+    if (item.name === 'flashlight.png') {
+      hasFlashlight = true;
+
+      // Create flashlight beam
+      flashlightLight = new THREE.PointLight(0xffffff, 2, 15);
+      scene.add(flashlightLight);
     }
   }
 
@@ -752,6 +800,19 @@ function animate() {
         winnerWinner.style.display = "flex";
       }
     }
+
+    nearbyItem = null;
+    const pickupPrompt = document.getElementById('pickupPrompt');
+    for (const item of items) {
+      const distance = mushroomGroup.position.distanceTo(item.mesh.position);
+      if (distance < 2) {
+        nearbyItem = item;
+        pickupPrompt.style.display = 'block';
+        break;
+      }
+    }
+    if (!nearbyItem) pickupPrompt.style.display = 'none';
+
   }
   renderer.render(scene, camera);
   // --- Orbit camera around player when right mouse is held ---
