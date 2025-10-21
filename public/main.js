@@ -22,6 +22,7 @@ const restartScreen = document.getElementById("restartScreen");
 const inventoryItemAmount = document.getElementById("inventoryItemAmount");
 const winnerWinner = document.getElementById("winnerWinner");
 const loserLoser = document.getElementById("loserLoser");
+const pickupPrompt = document.getElementById('pickupPrompt');
 // --- Mouse camera control ---
 let isRightMouseDown = false;
 let previousMouseX = 0;
@@ -65,7 +66,9 @@ window.addEventListener("keydown", (e) => {
   mushroomBodyPhysics.position.set(0, 1, 0);
   inventoryItemAmount.style.display = "none";
   cheater = false;
+    
 }
+  
 });
 
 // Game clock runs faster: 2 in-game hours = 1 real minute
@@ -124,22 +127,29 @@ window.addEventListener('mousemove', (e) => {
 
 // prevent default right-click menu
 window.addEventListener('contextmenu', (e) => e.preventDefault());
-
 window.addEventListener('keydown', (e) => {
-  if (e.code === 'Space' && nearbyItem) {
-    inventory.push(nearbyItem.name);
+  if (e.code === 'Space' && nearbyItem && gameRunning) {
+    // Add to inventory
+    inventory.push(nearbyItem.name || 'Item');
 
-    // flashlight special behavior
-    if (nearbyItem.name === 'flashlight.png' && !hasFlashlight) {
+    // Flashlight special behavior
+    if (nearbyItem.material?.map?.image?.src?.includes('flashlight.png') && !hasFlashlight) {
       hasFlashlight = true;
       flashlightLight = new THREE.PointLight(0xffffff, 2, 15);
       scene.add(flashlightLight);
     }
 
-    scene.remove(nearbyItem.mesh);
-    items = items.filter(i => i !== nearbyItem);
-    nearbyItem = null;
+    // Remove from scene and list
+    scene.remove(nearbyItem);
+    const index = items.indexOf(nearbyItem);
+    if (index !== -1) items.splice(index, 1);
+
+    // Hide prompt and clear nearby reference
     pickupPrompt.style.display = 'none';
+    nearbyItem = null;
+
+    // Update inventory display
+    updateInventoryDisplay();
   }
 });
 
@@ -759,34 +769,18 @@ function animate() {
     camera.getWorldDirection(dir);
     flashlightLight.position.copy(mushroomGroup.position).add(dir.multiplyScalar(2));
   }
-
-  // Check for item pickups
-  for (let i = items.length - 1; i >= 0; i--) {
-    const item = items[i];
-    const dx = mushroomGroup.position.x - item.position.x;
-    const dz = mushroomGroup.position.z - item.position.z;
-    const distance = Math.sqrt(dx * dx + dz * dz);
-/*
-    if (distance < 1.5) { // pick-up radius
-      scene.remove(item);     // remove from scene
-      items.splice(i, 1);     // remove from array
-      inventory.push(`Item ${inventory.length + 1}`); // add to inventory
-      updateInventoryDisplay();
+  nearbyItem = null;
+  
+  for (const item of items) {
+    if (!item || !item.position) continue;
+    const distance = mushroomGroup.position.distanceTo(item.position);
+    if (distance < 2) { // near enough to pick up
+      nearbyItem = item;
+      pickupPrompt.style.display = 'block';
+      break;
     }
-
-*/
-nearbyItem = null;
-const pickupPrompt = document.getElementById('pickupPrompt');
-
-for (const item of items) {
-  const distance = mushroomGroup.position.distanceTo(item.position);
-  if (distance < 2) { // near enough to pick up
-    nearbyItem = item;
-    pickupPrompt.style.display = 'block';
-    break;
   }
-}
-if (!nearbyItem) pickupPrompt.style.display = 'none';
+  if (!nearbyItem) pickupPrompt.style.display = 'none';
     if (item.name === 'flashlight.png') {
       hasFlashlight = true;
 
@@ -827,20 +821,6 @@ if (!nearbyItem) pickupPrompt.style.display = 'none';
         winnerWinner.style.display = "flex";
       }
     }
-
-    nearbyItem = null;
-    const pickupPrompt = document.getElementById('pickupPrompt');
-    for (const item of items) {
-      if (!item || !item.position) continue;
-      const distance = mushroomGroup.position.distanceTo(item.position);
-
-      if (distance < 2) {
-        nearbyItem = item;
-        pickupPrompt.style.display = 'block';
-        break;
-      }
-    }
-    if (!nearbyItem) pickupPrompt.style.display = 'none';
 
   }
   renderer.render(scene, camera);
