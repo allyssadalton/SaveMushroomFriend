@@ -746,7 +746,7 @@ function checkTreeCollisions() {
   const treeColliderShape = new CANNON.Cylinder(0.5, 0.7, 8, 8);
   
 }
-
+/*
 function animate() {
   requestAnimationFrame(animate);
 
@@ -831,4 +831,87 @@ function animate() {
   camera.lookAt(mushroomGroup.position);
 
 }
+*/
+function animate() {
+  requestAnimationFrame(animate);
+
+  handlePlayerMovement();
+  world.step(timeStep);
+
+  // Limit play area boundaries
+  const minX = -150, maxX = 150, minZ = -150, maxZ = 150;
+  mushroomBodyPhysics.position.x = Math.max(minX, Math.min(maxX, mushroomBodyPhysics.position.x));
+  mushroomBodyPhysics.position.z = Math.max(minZ, Math.min(maxZ, mushroomBodyPhysics.position.z));
+
+  // Sync 3D model with physics
+  mushroomGroup.position.copy(mushroomBodyPhysics.position);
+
+  // Update environment lighting
+  updateSkyAndCelestials();
+
+  // --- Flashlight follow ---
+  if (hasFlashlight && flashlightLight) {
+    const dir = new THREE.Vector3();
+    camera.getWorldDirection(dir);
+    flashlightLight.position.copy(mushroomGroup.position).add(dir.multiplyScalar(2));
+  }
+
+  // --- Nearby item detection (for space-bar pickup) ---
+  nearbyItem = null;
+  for (const item of items) {
+    if (!item || !item.position) continue;
+    const distance = mushroomGroup.position.distanceTo(item.position);
+    if (distance < 2) { // near enough to pick up
+      nearbyItem = item;
+      pickupPrompt.style.display = 'block';
+      break;
+    }
+  }
+  if (!nearbyItem) {
+    pickupPrompt.style.display = 'none';
+  }
+
+  // --- Make all items face the camera ---
+  for (const item of items) {
+    item.lookAt(camera.position);
+  }
+
+  // --- Door interaction ---
+  if (!doorOpen && !gameEnded) {
+    const dx = mushroomBodyPhysics.position.x - house.position.x;
+    const dz = mushroomBodyPhysics.position.z - (house.position.z + 3);
+    const distance = Math.sqrt(dx * dx + dz * dz);
+
+    if (distance < 2) { // near the door
+      if (inventory.length < 11) { 
+        inventoryItemAmount.style.display = "flex";
+        cheater = true;
+      } else {
+        doorOpen = true;
+        let openProgress = 0;
+        const openSpeed = 0.05;
+        const doorOpenInterval = setInterval(() => {
+          openProgress += openSpeed;
+          door.rotation.y = -openProgress;
+
+          if (door.rotation.y <= -Math.PI / 2) {
+            clearInterval(doorOpenInterval);
+            enterHouse();
+          }
+        }, 16);
+        winnerWinner.style.display = "flex";
+      }
+    }
+  }
+
+  // --- Render and camera orbit ---
+  renderer.render(scene, camera);
+
+  const camX = mushroomGroup.position.x + cameraRadius * Math.sin(cameraAngle);
+  const camZ = mushroomGroup.position.z + cameraRadius * Math.cos(cameraAngle);
+  camera.position.set(camX, mushroomGroup.position.y + 3, camZ);
+  camera.lookAt(mushroomGroup.position);
+}
+
 animate();
+
