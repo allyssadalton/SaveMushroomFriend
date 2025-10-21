@@ -577,7 +577,7 @@ for (const filename of itemFiles) {
   const itemMesh = new THREE.Mesh(geometry, material);
 
   // lift the item so it sits on the ground instead of halfway inside it
-  itemMesh.position.y = 1.2 / 2; // = 0.6
+  itemMesh.position.y = 1.1; // = 0.6
 
   placeItemRandomly(itemMesh, treePositions);
   itemMesh.rotation.y = Math.random() * Math.PI * 2;
