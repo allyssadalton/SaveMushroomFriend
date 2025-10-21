@@ -743,7 +743,7 @@ function animate() {
     // Position flashlight slightly in front of the mushroom
     const dir = new THREE.Vector3();
     camera.getWorldDirection(dir);
-    flashlightLight.position.copy(mushroom.position).add(dir.multiplyScalar(2));
+    flashlightLight.position.copy(mushroomGroup.position).add(dir.multiplyScalar(2));
   }
 
   // Check for item pickups
