@@ -135,6 +135,7 @@ window.addEventListener('keydown', (e) => {
   if (e.code === 'Space' && nearbyItem && gameRunning) {
     // Add to inventory
     inventory.push(nearbyItem.name || 'Item');
+    score += 10
 
     // Flashlight special behavior
     if (nearbyItem.material?.map?.image?.src?.includes('flashlight.png') && !hasFlashlight) {
@@ -653,7 +654,7 @@ function enterHouse() {
 
   // --- Display results ---
   winnerWinner.style.display = "flex"; // show win screen
-  //timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nScore: ${score}`;
+  timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nScore: ${score}`;
   endGame(true, currentScore);
 
   
