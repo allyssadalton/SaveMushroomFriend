@@ -87,9 +87,11 @@ setInterval(() => {
   // Stop at 6pm (18:00)
   if (hour === 18 && minute === 0) {
     gameRunning = false;
+    gameEnded = true;
+    const finalScore = inventory.length * 10;
     document.getElementById('clock').innerText = 'Game Over!';
     loserLoser.style.display = "flex"; // show win screen
-   timeValue.innerText = `Score: ${score += (inventory.length * 10)}`;
+    document.getElementById('finalScoreLoser').innerText = `Final Score: ${finalScore}`;
   }
 
 
@@ -819,6 +821,7 @@ function animate() {
             enterHouse();
           }
         }, 16);
+        document.getElementById("finalScoreWinner").textContent = `Your final score: ${score}`;
         winnerWinner.style.display = "flex";
       }
     }
