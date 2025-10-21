@@ -425,6 +425,12 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// 🌲 Load tree bark texture
+const treeBarkTexture = textureLoader.load('assets/tree.png');
+treeBarkTexture.wrapS = THREE.RepeatWrapping;
+treeBarkTexture.wrapT = THREE.RepeatWrapping;
+treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
+
 // TREESSSS
 const treeBodies = [];
 function addTree(x, z) {
@@ -510,11 +516,6 @@ const itemCount = 10;
 // Place flashlight once in front of mushroom
 const textureLoader = new THREE.TextureLoader();
 const flashlightTexture = textureLoader.load('../assets/flashlight.png');
-// 🌲 Load tree bark texture
-const treeBarkTexture = textureLoader.load('assets/tree.png');
-treeBarkTexture.wrapS = THREE.RepeatWrapping;
-treeBarkTexture.wrapT = THREE.RepeatWrapping;
-treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
 
 
 const flashlightMaterial = new THREE.MeshBasicMaterial({
