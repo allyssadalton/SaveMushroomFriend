@@ -462,8 +462,10 @@ function addInstancedForestTrees() {
   const treeCount = 200; // Adjust for density
 
   // Trunk instancing
-  const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.7, 10, 8);
-  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+  const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 8);
+  const trunkMaterial = new THREE.MeshStandardMaterial({
+    map: treeBarkTexture,
+  });
   const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
 
   // Leaves instancing
@@ -508,6 +510,12 @@ const itemCount = 10;
 // Place flashlight once in front of mushroom
 const textureLoader = new THREE.TextureLoader();
 const flashlightTexture = textureLoader.load('../assets/flashlight.png');
+// 🌲 Load tree bark texture
+const treeBarkTexture = textureLoader.load('assets/tree.png');
+treeBarkTexture.wrapS = THREE.RepeatWrapping;
+treeBarkTexture.wrapT = THREE.RepeatWrapping;
+treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
+
 
 const flashlightMaterial = new THREE.MeshBasicMaterial({
   map: flashlightTexture,
@@ -633,8 +641,10 @@ function addDenseForest() {
   const treeCount = 800; // increase for denser forest (try 1000+ if your GPU handles it)
   const minDistance = 3; // spacing so trees aren't too close
 
-  const trunkGeometry = new THREE.CylinderGeometry(0.4, 0.6, 8, 6);
-  const trunkMaterial = new THREE.MeshStandardMaterial({ color: 0x8b4513 });
+  const trunkGeometry = new THREE.CylinderGeometry(0.5, 0.5, 8, 16);
+  const trunkMaterial = new THREE.MeshStandardMaterial({
+    map: treeBarkTexture,
+  });
   const trunkMesh = new THREE.InstancedMesh(trunkGeometry, trunkMaterial, treeCount);
 
   const leavesGeometry = new THREE.SphereGeometry(1.8, 10, 10);
