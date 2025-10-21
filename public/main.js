@@ -12,7 +12,7 @@ let gameEnded = false;
 let score = 0;
 let gameStarted = false;
 let gamePaused = false;
-let gameRestart = false;
+let gameRestart = false; 
 let flashlightLight = null;
 let hasFlashlight = false;
 let nearbyItem = null;
@@ -306,7 +306,7 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
 // Ground
-const groundTexture = new THREE.TextureLoader().load('assets/grass.jpg');
+const groundTexture = new THREE.TextureLoader().load('../assets/grass.jpg');
 groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping;
 groundTexture.repeat.set(10, 10);
 const ground = new THREE.Mesh(
@@ -425,11 +425,7 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// 🌲 Load tree bark texture
-const treeBarkTexture = new THREE.TextureLoader().load('assets/tree.png');
-treeBarkTexture.wrapS = THREE.RepeatWrapping;
-treeBarkTexture.wrapT = THREE.RepeatWrapping;
-treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
+
 
 // TREESSSS
 const treeBodies = [];
@@ -506,7 +502,7 @@ function updateInventoryDisplay() {
   invDiv.innerText = `Inventory: ${inventory.length} / 11 items`;
 }
 
-addDenseForest();
+
 const treePositions = treeBodies.map(tree => new THREE.Vector3(tree.position.x, tree.position.y, tree.position.z));
 
 // --- ITEM SYSTEM ---
@@ -516,8 +512,13 @@ const itemCount = 10;
 // Place flashlight once in front of mushroom
 const textureLoader = new THREE.TextureLoader();
 const flashlightTexture = textureLoader.load('../assets/flashlight.png');
+// 🌲 Load tree bark texture
+const treeBarkTexture = textureLoader.load('../assets/tree.png');
+treeBarkTexture.wrapS = THREE.RepeatWrapping;
+treeBarkTexture.wrapT = THREE.RepeatWrapping;
+treeBarkTexture.repeat.set(1, 2); // tile vertically a bit
 
-
+addDenseForest();
 const flashlightMaterial = new THREE.MeshBasicMaterial({
   map: flashlightTexture,
   transparent: true,
