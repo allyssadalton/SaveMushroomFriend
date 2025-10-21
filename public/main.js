@@ -766,7 +766,7 @@ function animate() {
     const dx = mushroomGroup.position.x - item.position.x;
     const dz = mushroomGroup.position.z - item.position.z;
     const distance = Math.sqrt(dx * dx + dz * dz);
-
+/*
     if (distance < 1.5) { // pick-up radius
       scene.remove(item);     // remove from scene
       items.splice(i, 1);     // remove from array
@@ -774,6 +774,19 @@ function animate() {
       updateInventoryDisplay();
     }
 
+*/
+nearbyItem = null;
+const pickupPrompt = document.getElementById('pickupPrompt');
+
+for (const item of items) {
+  const distance = mushroomGroup.position.distanceTo(item.position);
+  if (distance < 2) { // near enough to pick up
+    nearbyItem = item;
+    pickupPrompt.style.display = 'block';
+    break;
+  }
+}
+if (!nearbyItem) pickupPrompt.style.display = 'none';
     if (item.name === 'flashlight.png') {
       hasFlashlight = true;
 
