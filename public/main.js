@@ -91,7 +91,9 @@ setInterval(() => {
     const finalScore = inventory.length * 10;
     document.getElementById('clock').innerText = 'Game Over!';
     loserLoser.style.display = "flex"; // show win screen
-    document.getElementById('finalScoreLoser').innerText = `Final Score: ${finalScore}`;
+    endGame(false, currentScore);
+
+    //document.getElementById('finalScoreLoser').innerText = `Final Score: ${finalScore}`;
   }
 
 
@@ -647,7 +649,9 @@ function enterHouse() {
 
   // --- Display results ---
   winnerWinner.style.display = "flex"; // show win screen
-  timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nScore: ${score}`;
+  //timeValue.innerText = `Time taken: ${elapsedHours.toFixed(1)} hours\nScore: ${score}`;
+  endGame(true, currentScore);
+
   
 
 }
@@ -747,7 +751,21 @@ function checkTreeCollisions() {
     }
   }
   const treeColliderShape = new CANNON.Cylinder(0.5, 0.7, 8, 8);
-  
+function endGame(win, score) {
+  const winnerScreen = document.getElementById("winnerWinner");
+  const loserScreen = document.getElementById("loserLoser");
+  const finalScoreWinner = document.getElementById("finalScoreWinner");
+  const finalScoreLoser = document.getElementById("finalScoreLoser");
+
+  if (win) {
+    winnerScreen.style.display = "flex";
+    finalScoreWinner.textContent = `Score: ${score}`;
+  } else {
+    loserScreen.style.display = "flex";
+    finalScoreLoser.textContent = `Score: ${score}`;
+  }
+}
+
 }
 /*
 function animate() {
