@@ -293,13 +293,13 @@ function addStars(numStars = 900) {
 addStars();
 updateSkyAndCelestials();
 
-function placeItemRandomly(mesh, treePositions) {
+function placeItemRandomly(mesh, treePositions, y = 0.6) {
   let position;
   let tooClose;
   do {
     position = new THREE.Vector3(
       (Math.random() - 0.5) * 100, // adjust to map size
-      0,
+      y,                           // <--- use desired y
       (Math.random() - 0.5) * 100
     );
     tooClose = treePositions.some(treePos => treePos.distanceTo(position) < 5);
@@ -307,6 +307,7 @@ function placeItemRandomly(mesh, treePositions) {
 
   mesh.position.copy(position);
 }
+
 
 // Camera setup
 const camera = new THREE.PerspectiveCamera(
@@ -582,9 +583,9 @@ for (const filename of itemFiles) {
   const itemMesh = new THREE.Mesh(geometry, material);
 
   // lift the item so it sits on the ground instead of halfway inside it
-  itemMesh.position.y = 5; // = 0.6
+  itemMesh.position.y = 2; // = 0.6
 
-  placeItemRandomly(itemMesh, treePositions);
+  placeItemRandomly(itemMesh, treePositions, 0.6);
   itemMesh.rotation.y = Math.random() * Math.PI * 2;
   scene.add(itemMesh);
   items.push(itemMesh);
